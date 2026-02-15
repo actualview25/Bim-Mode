@@ -2,26 +2,35 @@
   "walls": [
     {
       "id": "wall-1",
+      "name": "جدار رئيسي",
       "yaw": 0.3,
       "pitch": 0.05,
-      "thickness": "25 cm",
-      "type": "خرسانة",
-      "note": "جدار حامل"
+      "thickness": "25 سم",
+      "type": "خرسانة مسلحة",
+      "note": "جدار حامل",
+      "color": "#ff4444"
     },
     {
       "id": "wall-2",
+      "name": "جدار داخلي",
       "yaw": -0.8,
       "pitch": 0.1,
-      "thickness": "15 cm",
-      "type": "طوب",
-      "note": "قابل للتعديل"
+      "thickness": "15 سم",
+      "type": "طوب أحمر",
+      "note": "قابل للتعديل",
+      "color": "#ff8888"
+    }
   ],
-
   "electrical": [
     {
       "id": "main-line",
+      "name": "الكابل الرئيسي",
       "path": "M120 180 L420 180 L420 360",
-      "label": "Main Power Line"
-      }
-   ]
+      "voltage": "220V",
+      "amperage": "20A",
+      "color": "#44ff44"
+    }
+  ],
+  "plumbing": [],
+  "hvac": []
 }
