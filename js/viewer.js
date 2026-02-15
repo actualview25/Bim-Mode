@@ -1,10 +1,12 @@
 // ملف viewer.js المعدل
 let viewer;
-let currentScene;
+let currentScene = null;
 let scenes = [];
 let appData;
 
 function initBIMViewer() {
+  console.log('بدء تهيئة المشاهد...');
+  
   // التحقق من وجود البيانات
   if (typeof APP_DATA === 'undefined') {
     console.error('APP_DATA غير موجود');
@@ -12,23 +14,24 @@ function initBIMViewer() {
   }
   
   appData = APP_DATA;
+  console.log('تم تحميل البيانات:', appData);
   
   // تهيئة المشاهد
   initScenes();
-  
-  // إضافة مستمع لتغيير المشهد
-  window.addEventListener('sceneChanged', function(e) {
-    onSceneChanged(e.detail.scene);
-  });
 }
 
 function initScenes() {
   const viewerElement = document.getElementById('viewer');
-  viewer = new Marzipano.Viewer(viewerElement, {
+  
+  // إعدادات المشاهد
+  const viewerOpts = {
     controls: {
       mouseViewMode: appData.settings ? appData.settings.mouseViewMode : 'drag'
     }
-  });
+  };
+
+  // تهيئة المشاهد
+  viewer = new Marzipano.Viewer(viewerElement, viewerOpts);
 
   // إنشاء المشاهد
   scenes = appData.scenes.map(function(data) {
@@ -49,17 +52,35 @@ function initScenes() {
       pinFirstLevel: true
     });
 
-    // إضافة نقاط الربط
-    data.linkHotspots.forEach(function(hotspot) {
-      const element = createLinkHotspotElement(hotspot);
-      scene.hotspotContainer().createHotspot(element, { yaw: hotspot.yaw, pitch: hotspot.pitch });
-    });
+    // إضافة نقاط الربط (Link Hotspots)
+    if (data.linkHotspots && data.linkHotspots.length > 0) {
+      data.linkHotspots.forEach(function(hotspot) {
+        try {
+          const element = createLinkHotspotElement(hotspot);
+          scene.hotspotContainer().createHotspot(element, { 
+            yaw: hotspot.yaw, 
+            pitch: hotspot.pitch 
+          });
+        } catch(e) {
+          console.warn('خطأ في إضافة نقطة ربط:', e);
+        }
+      });
+    }
 
-    // إضافة نقاط المعلومات (BIM)
-    data.infoHotspots.forEach(function(hotspot) {
-      const element = createBIMHotspotElement(hotspot);
-      scene.hotspotContainer().createHotspot(element, { yaw: hotspot.yaw, pitch: hotspot.pitch });
-    });
+    // إضافة نقاط المعلومات (Info Hotspots)
+    if (data.infoHotspots && data.infoHotspots.length > 0) {
+      data.infoHotspots.forEach(function(hotspot) {
+        try {
+          const element = createInfoHotspotElement(hotspot);
+          scene.hotspotContainer().createHotspot(element, { 
+            yaw: hotspot.yaw, 
+            pitch: hotspot.pitch 
+          });
+        } catch(e) {
+          console.warn('خطأ في إضافة نقطة معلومات:', e);
+        }
+      });
+    }
 
     return {
       data: data,
@@ -68,6 +89,8 @@ function initScenes() {
     };
   });
 
+  console.log('تم إنشاء ' + scenes.length + ' مشهد');
+
   // عرض المشهد الأول
   if (scenes.length > 0) {
     switchToScene(scenes[0]);
@@ -75,13 +98,22 @@ function initScenes() {
 
   // إعداد قائمة المشاهد
   populateSceneList();
+  
+  // إعداد أزرار التحكم
+  setupControlButtons();
 }
 
 function switchToScene(scene) {
-  if (currentScene) {
-    currentScene.scene.stopAnimation();
+  if (!scene) return;
+  
+  console.log('التبديل إلى المشهد:', scene.data.name);
+  
+  // إيقاف أي حركة حالية
+  if (viewer) {
+    viewer.stopMovement();
   }
   
+  // التبديل إلى المشهد الجديد
   scene.scene.switchTo();
   currentScene = scene;
   
@@ -93,21 +125,41 @@ function switchToScene(scene) {
     }
   });
   
+  // تحديث اسم المشهد
+  const sceneNameElement = document.querySelector('#titleBar .sceneName');
+  if (sceneNameElement) {
+    sceneNameElement.innerHTML = scene.data.name;
+  }
+  
   // إرسال حدث تغيير المشهد
-  window.dispatchEvent(new CustomEvent('sceneChanged', { detail: { scene: scene } }));
+  const event = new CustomEvent('sceneChanged', { detail: { scene: scene } });
+  window.dispatchEvent(event);
 }
 
 function createLinkHotspotElement(hotspot) {
   const wrapper = document.createElement('div');
-  wrapper.classList.add('hotspot', 'link-hotspot');
+  wrapper.className = 'hotspot link-hotspot';
 
   const icon = document.createElement('img');
   icon.src = 'img/link.png';
-  icon.classList.add('link-hotspot-icon');
+  icon.className = 'link-hotspot-icon';
+  icon.alt = 'انتقال';
+  
+  // إضافة تأثير الدوران إذا كان موجوداً
+  if (hotspot.rotation) {
+    icon.style.transform = 'rotate(' + hotspot.rotation + 'rad)';
+  }
   
   wrapper.appendChild(icon);
   
-  wrapper.addEventListener('click', function() {
+  // إضافة اسم الوجهة كتلميح
+  const targetScene = scenes.find(s => s.data.id === hotspot.target);
+  if (targetScene) {
+    wrapper.title = 'انتقال إلى: ' + targetScene.data.name;
+  }
+  
+  wrapper.addEventListener('click', function(e) {
+    e.stopPropagation();
     const targetScene = scenes.find(s => s.data.id === hotspot.target);
     if (targetScene) {
       switchToScene(targetScene);
@@ -117,18 +169,24 @@ function createLinkHotspotElement(hotspot) {
   return wrapper;
 }
 
-function createBIMHotspotElement(hotspot) {
+function createInfoHotspotElement(hotspot) {
   const wrapper = document.createElement('div');
-  wrapper.classList.add('hotspot', 'info-hotspot');
+  wrapper.className = 'hotspot info-hotspot';
   
   const icon = document.createElement('img');
   icon.src = 'img/info.png';
-  icon.classList.add('info-hotspot-icon');
+  icon.className = 'info-hotspot-icon';
+  icon.alt = 'معلومات';
   
   wrapper.appendChild(icon);
   
-  wrapper.addEventListener('click', function() {
-    showBIMData(hotspot);
+  if (hotspot.title) {
+    wrapper.title = hotspot.title;
+  }
+  
+  wrapper.addEventListener('click', function(e) {
+    e.stopPropagation();
+    showHotspotInfo(hotspot);
   });
 
   return wrapper;
@@ -136,6 +194,8 @@ function createBIMHotspotElement(hotspot) {
 
 function populateSceneList() {
   const list = document.getElementById('scenesList');
+  if (!list) return;
+  
   list.innerHTML = '';
   
   scenes.forEach(scene => {
@@ -145,11 +205,67 @@ function populateSceneList() {
     li.addEventListener('click', () => switchToScene(scene));
     list.appendChild(li);
   });
+  
+  console.log('تم إنشاء قائمة المشاهد');
 }
 
-function onSceneChanged(scene) {
-  // تحديث طبقات BIM عند تغيير المشهد
-  if (typeof loadLayersForScene === 'function') {
-    loadLayersForScene(scene.data.id);
+function setupControlButtons() {
+  // زر قائمة المشاهد
+  const sceneListToggle = document.getElementById('sceneListToggle');
+  if (sceneListToggle) {
+    sceneListToggle.addEventListener('click', function() {
+      document.getElementById('sceneList').classList.toggle('visible');
+    });
+  }
+  
+  // زر التشغيل التلقائي
+  const autorotateToggle = document.getElementById('autorotateToggle');
+  if (autorotateToggle) {
+    autorotateToggle.addEventListener('click', function() {
+      if (viewer) {
+        if (autorotateToggle.classList.contains('enabled')) {
+          viewer.stopMovement();
+          autorotateToggle.classList.remove('enabled');
+        } else {
+          startAutorotate();
+          autorotateToggle.classList.add('enabled');
+        }
+      }
+    });
   }
 }
+
+function startAutorotate() {
+  if (!viewer) return;
+  
+  const autorotate = Marzipano.autorotate({
+    yawSpeed: 0.03,
+    targetPitch: 0,
+    targetFov: Math.PI/2
+  });
+  
+  viewer.startMovement(autorotate);
+  viewer.setIdleMovement(3000, autorotate);
+}
+
+function showHotspotInfo(hotspot) {
+  const panel = document.getElementById('data-panel');
+  const title = document.getElementById('panel-title');
+  const content = document.getElementById('panel-content');
+  
+  title.textContent = hotspot.title || 'معلومات';
+  
+  let html = '<div style="padding: 10px;">';
+  html += '<p>' + (hotspot.text || 'لا توجد معلومات إضافية') + '</p>';
+  html += '</div>';
+  
+  content.innerHTML = html;
+  panel.classList.add('visible');
+}
+
+// تهيئة عند تحميل الصفحة
+window.addEventListener('load', function() {
+  if (typeof initBIMViewer === 'function') {
+    setTimeout(initBIMViewer, 100); // تأخير بسيط للتأكد من تحميل كل شيء
+  }
+});
