@@ -1,36 +1,93 @@
 {
-  "walls": [
-    {
-      "id": "wall-1",
-      "name": "جدار رئيسي",
-      "yaw": 0.3,
-      "pitch": 0.05,
-      "thickness": "25 سم",
-      "type": "خرسانة مسلحة",
-      "note": "جدار حامل",
-      "color": "#ff4444"
+  "scenes": {
+    "0-startpoint": {
+      "walls": [
+        {
+          "id": "wall-1",
+          "name": "جدار رئيسي",
+          "path": "M400,300 L600,300 L600,500 L400,500 Z",
+          "color": "#ff4444",
+          "thickness": "30 سم",
+          "material": "خرسانة مسلحة",
+          "type": "حامل"
+        },
+        {
+          "id": "wall-2", 
+          "name": "جدار داخلي",
+          "path": "M200,200 L400,200 L400,400 L200,400 Z",
+          "color": "#ff8888",
+          "thickness": "15 سم",
+          "material": "طوب",
+          "type": "غير حامل"
+        }
+      ],
+      "electrical": [
+        {
+          "id": "electrical-1",
+          "name": "الكابل الرئيسي",
+          "path": "M100,100 L700,100",
+          "color": "#44ff44",
+          "voltage": "220V",
+          "type": "تيار رئيسي"
+        },
+        {
+          "id": "electrical-2",
+          "name": "تمديدات إضاءة",
+          "path": "M300,200 L500,200",
+          "color": "#88ff88",
+          "voltage": "110V",
+          "type": "إضاءة"
+        }
+      ],
+      "plumbing": [
+        {
+          "id": "plumbing-1",
+          "name": "ماسورة مياه ساخنة",
+          "path": "M400,400 L600,400",
+          "color": "#4444ff",
+          "diameter": "1 بوصة",
+          "material": "نحاس"
+        },
+        {
+          "id": "plumbing-2",
+          "name": "ماسورة صرف",
+          "path": "M400,500 L600,500",
+          "color": "#8888ff",
+          "diameter": "4 بوصة",
+          "material": "PVC"
+        }
+      ],
+      "hvac": [
+        {
+          "id": "hvac-1",
+          "name": "مجرى هواء رئيسي",
+          "path": "M200,600 L500,600",
+          "color": "#ffaa44",
+          "size": "60x60 سم",
+          "type": "سحب"
+        },
+        {
+          "id": "hvac-2",
+          "name": "فتحة تكييف",
+          "path": "M300,650 L400,650",
+          "color": "#ffaa88",
+          "size": "30x30 سم",
+          "type": "توزيع"
+        }
+      ]
     },
-    {
-      "id": "wall-2",
-      "name": "جدار داخلي",
-      "yaw": -0.8,
-      "pitch": 0.1,
-      "thickness": "15 سم",
-      "type": "طوب أحمر",
-      "note": "قابل للتعديل",
-      "color": "#ff8888"
+    "1-outercourtyard": {
+      "walls": [
+        {
+          "id": "wall-3",
+          "name": "سور خارجي",
+          "path": "M100,100 L800,100 L800,500 L100,500 Z",
+          "color": "#cc3333",
+          "thickness": "50 سم",
+          "material": "خرسانة",
+          "type": "سور"
+        }
+      ]
     }
-  ],
-  "electrical": [
-    {
-      "id": "main-line",
-      "name": "الكابل الرئيسي",
-      "path": "M120 180 L420 180 L420 360",
-      "voltage": "220V",
-      "amperage": "20A",
-      "color": "#44ff44"
-    }
-  ],
-  "plumbing": [],
-  "hvac": []
+  }
 }
