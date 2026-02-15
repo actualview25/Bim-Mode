@@ -268,3 +268,58 @@ body {
     width: 240px;
   }
 }
+
+/* أنماط محسنة لطبقات BIM */
+#walls-layer path, #electrical-layer path, #plumbing-layer path, #hvac-layer path {
+  transition: all 0.3s ease;
+  vector-effect: non-scaling-stroke;
+}
+
+.walls-path {
+  stroke: #ff4444;
+  stroke-width: 4;
+  fill: none;
+  stroke-dasharray: none;
+}
+
+.electrical-path {
+  stroke: #44ff44;
+  stroke-width: 3;
+  fill: none;
+  stroke-dasharray: 8,8;
+}
+
+.plumbing-path {
+  stroke: #4444ff;
+  stroke-width: 4;
+  fill: none;
+  stroke-dasharray: none;
+}
+
+.hvac-path {
+  stroke: #ffaa44;
+  stroke-width: 4;
+  fill: none;
+  stroke-dasharray: 10,5;
+}
+
+/* تسميات العناصر */
+#overlay svg text {
+  font-family: 'Arial', sans-serif;
+  text-shadow: 1px 1px 2px black;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* تأثيرات hover */
+#overlay svg path:hover {
+  filter: drop-shadow(0 0 8px yellow);
+  cursor: pointer;
+}
+
+/* أزرار الطبقات النشطة */
+.layer-btn.active {
+  background: #0066cc !important;
+  box-shadow: 0 0 15px #0066cc;
+  transform: scale(1.05);
+}
